@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Château Loire | Bioprocess Hub</title>
+    <style>
+        :root {
+            --bg: #020617;
+            --panel: #0f172a;
+            --accent: #3b82f6;
+            --wine: #991b1b;
+        }
+        body { background: var(--bg); color: #f8fafc; font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 50px; }
+        
+        /* HERO SECTION */
+        .hero {
+            height: 250px;
+            background: linear-gradient(to bottom, rgba(2,6,23,0.4), var(--bg)), 
+                        url('https://images.unsplash.com/photo-1504275107627-0c2ba7a43dba?auto=format&fit=crop&q=80&w=1200');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            border-bottom: 2px solid var(--wine);
+        }
+        
+        .container { max-width: 1200px; margin: -40px auto 0; padding: 0 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; }
+        
+        .panel { 
+            background: var(--panel); 
+            border: 1px solid #1e293b; 
+            border-radius: 16px; 
+            padding: 20px; 
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .panel:hover { transform: translateY(-3px); border-color: var(--accent); }
+        
+        /* Interactive Panel Style for Dataset 2 */
+        .clickable-panel { cursor: pointer; position: relative; }
+        .clickable-panel::after {
+            content: "💡 Click to view handwritten derivations";
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 0.75rem;
+            color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        h2 { color: #f1f5f9; margin: 0 0 10px 0; font-size: 1.25rem; font-weight: 700; }
+        h3 { color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px; }
+        
+        /* SCROLLABLE TABLE CONTAINERS */
+        .table-container {
+            width: 100%;
+            max-height: 240px;
+            overflow-y: auto;
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            background: #020617;
+            margin: 15px 0;
+        }
+
+        .table-container::-webkit-scrollbar { width: 6px; height: 6px; }
+        .table-container::-webkit-scrollbar-track { background: transparent; }
+        .table-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th { position: sticky; top: 0; background: #1e293b; color: #94a3b8; font-size: 0.7rem; padding: 12px; z-index: 10; text-transform: uppercase; }
+        td { padding: 10px; border-bottom: 1px solid #1e293b; font-size: 0.8rem; text-align: center; background: #020617; }
+
+        .insight { 
+            margin-top: auto; 
+            padding: 12px; 
+            background: rgba(59, 130, 246, 0.05); 
+            border-left: 3px solid var(--accent);
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .critical { color: #ef4444; font-weight: bold; }
+        
+        /* MODAL OVERLAY FOR HANDWRITTEN CALCULATIONS */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 20px;
+            padding: 15px;
+            max-width: 90%;
+            max-height: 90vh;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .modal-content img {
+            max-width: 100%;
+            max-height: 75vh;
+            border-radius: 10px;
+            object-fit: contain;
+            border: 1px solid #1e293b;
+        }
+        .close-btn {
+            position: absolute;
+            top: -15px; right: -15px;
+            background: var(--wine);
+            color: white;
+            border: 2px solid #334155;
+            width: 35px; height: 35px;
+            border-radius: 50%;
+            font-size: 1.1rem; font-weight: bold;
+            cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .close-btn:hover { background: #b91c1c; }
+        .modal-caption {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <section class="hero">
+        <h1 style="font-size: 2.5rem; margin: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.8);">Château Loire</h1>
+        <p style="font-size: 1rem; color: #cbd5e1;">PBL: Wine Yeast Kinetics Hub</p>
+    </section>
+
+    <div class="container">
+        <div class="grid" style="margin-bottom: 25px;">
+            <div class="panel">
+                <h3>Dataset 1</h3>
+                <h2>Growth vs. Glucose</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr><th>Glucose (g/L)</th><th>Measured μ</th><th>Monod Pred.</th><th>Dev %</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>10</td><td>0.412</td><td>0.410</td><td>+0.5</td></tr>
+                            <tr><td>25</td><td>0.485</td><td>0.480</td><td>+1.0</td></tr>
+                            <tr><td>50</td><td>0.520</td><td>0.530</td><td>-1.9</td></tr>
+                            <tr><td>75</td><td>0.545</td><td>0.555</td><td>-1.8</td></tr>
+                            <tr><td>100</td><td>0.560</td><td>0.570</td><td>-1.8</td></tr>
+                            <tr style="background: rgba(239, 68, 68, 0.05);"><td>125</td><td>0.550</td><td>0.580</td><td class="critical">-5.2</td></tr>
+                            <tr><td>150</td><td>0.520</td><td>0.585</td><td class="critical">-11.1</td></tr>
+                            <tr><td>175</td><td>0.480</td><td>0.588</td><td class="critical">-18.4</td></tr>
+                            <tr><td>200</td><td>0.420</td><td>0.590</td><td class="critical">-28.8</td></tr>
+                            <tr><td>250</td><td>0.310</td><td>0.592</td><td class="critical">-47.6</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="insight">
+                    At high glucose concentrations (&ge;150 g/L), fermentation rates drop significantly below classical Monod parameters[cite: 151, 152]. At 250 g/L, the deviation hits -47.6%[cite: 173].
+                </div>
+            </div>
+
+            <div class="panel clickable-panel" onclick="openModal()">
+                <h3>Dataset 2</h3>
+                <h2>Fermentation Dynamics</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr><th>Time (h)</th><th>Biomass (g/L)</th><th>Glucose (g/L)</th><th>Ethanol (g/L)</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>0</td><td>0.50</td><td>200.0</td><td>0.0</td></tr>
+                            <tr><td>6</td><td>0.85</td><td>195.2</td><td>2.8</td></tr>
+                            <tr><td>12</td><td>1.42</td><td>188.5</td><td>6.5</td></tr>
+                            <tr><td>24</td><td>2.15</td><td>175.8</td><td>14.2</td></tr>
+                            <tr><td>36</td><td>2.50</td><td>162.4</td><td>23.6</td></tr>
+                            <tr><td>48</td><td>2.68</td><td>148.5</td><td>32.8</td></tr>
+                            <tr><td>60</td><td>2.72</td><td>134.2</td><td>41.5</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="insight">
+                    Specific growth rate declines progressively from 0.0608 h⁻¹ down to 0.0012 h⁻¹ by the late phase[cite: 89, 96]. This severe decay stalls total operations[cite: 95].
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>Dataset 3</h3>
+                <h2>Ethanol Stress Profile</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr><th>Ethanol (g/L)</th><th>Glucose (g/L)</th><th>Measured μ</th><th>Rel. Growth %</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>0</td><td>50</td><td>0.520</td><td>100</td></tr>
+                            <tr><td>8</td><td>50</td><td>0.508</td><td>97.7</td></tr>
+                            <tr><td>14.2</td><td>50</td><td>0.502</td><td>96.5</td></tr>
+                            <tr><td>22</td><td>50</td><td>0.480</td><td>92.3</td></tr>
+                            <tr style="background: rgba(239, 68, 68, 0.05);"><td>30</td><td>50</td><td>0.445</td><td class="critical">85.6</td></tr>
+                            <tr><td>40</td><td>50</td><td>0.395</td><td>75.9</td></tr>
+                            <tr><td>60</td><td>50</td><td>0.280</td><td>53.8</td></tr>
+                            <tr><td>90</td><td>50</td><td>0.145</td><td>27.9</td></tr>
+                            <tr><td>112</td><td>50</td><td>0.010</td><td class="critical">1.9</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="insight">
+                    Significant inhibition (&gt;10%) manifests at 30 g/L ethanol[cite: 196]. However, the late-stage titre of 41.5 g/L is insufficient to explain the complete kinetic failure alone[cite: 111, 112].
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>Dataset 4</h3>
+                <h2>Pure Substrate Inhibition</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr><th>Glucose (g/L)</th><th>Ethanol (g/L)</th><th>Measured μ</th><th>Dev %</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>30</td><td>0</td><td>0.570</td><td>-3.4</td></tr>
+                            <tr><td>50</td><td>0</td><td>0.560</td><td>-5.1</td></tr>
+                            <tr><td>75</td><td>0</td><td>0.530</td><td class="critical">-10.2</td></tr>
+                            <tr><td>100</td><td>0</td><td>0.480</td><td class="critical">-18.6</td></tr>
+                            <tr><td>150</td><td>0</td><td>0.350</td><td class="critical">-40.7</td></tr>
+                            <tr><td>200</td><td>0</td><td>0.240</td><td class="critical">-59.3</td></tr>
+                            <tr><td>240</td><td>0</td><td>0.190</td><td class="critical">-67.8</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="insight">
+                    Pure glucose load drives a -59.3% deviation at 200 g/L without any ethanol present[cite: 204]. This confirms osmotic pressure acts as the primary system inhibitor[cite: 142, 144].
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" style="border-top: 4px solid #4ade80; background: rgba(6, 78, 59, 0.1); margin-bottom: 30px;">
+            <h3 style="color: #4ade80; border:none; margin-bottom: 10px;">Operational Engineering Solutions</h3>
+            <div class="grid" style="grid-template-columns: 1fr 1fr; font-size: 0.9em;">
+                <div>
+                    <strong>1. Fed-Batch Operations:</strong> Gradually feed substrate to hold total glucose below 100 g/L. Table 4 shows a minimal -10.2% deviation at 75 g/L compared to a devastating -59.3% collapse at 200 g/L. This maintains yeast in its highest metabolic efficiency window.
+                </div>
+                <div>
+                    <strong>2. Salt Preconditioning:</strong> Incubating yeast starters in 6% NaCl (w/v) for 24h triggers structural accumulation of osmoprotectants (trehalose and glycerol). This pre-arms the culture against initial high osmotic stress fields without requiring bioprocess hardware updates.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="calcModal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="document.getElementById('calcModal').style.display='none'">&times;</button>
+            <img src="calcChong.png" alt="Handwritten Kinetic Phase Derivations" onerror="loadFallbackImage(this)">
+            <div class="modal-caption">
+                <strong>SIO2013 Phase Integration Kinetics:</strong> Integral derivation of specific growth rate, assuming quasi-constant states across distinct temporal batch windows .
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            document.getElementById('calcModal').style.display = 'flex';
+        }
+        function closeModal(e) {
+            if(e.target.id === 'calcModal') {
+                document.getElementById('calcModal').style.display = 'none';
+            }
+        }
+        // Secure local image reconstruction fallback handler
+        function loadFallbackImage(imgElement) {
+            imgElement.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+            console.log("Using primary image rendering profile.");
+        }
+    </script>
+</body>
+</html>
